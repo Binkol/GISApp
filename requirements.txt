@@ -1,2 +1,6 @@
 Django
 psycopg2
+GeoAlchemy2
+django-geojson-serializer
+djangorestframework
+shapely
