@@ -10,11 +10,13 @@
     <link rel="stylesheet" href="{% static 'libs/v7.1.0-ol/ol.css' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
     <script src="{% static 'libs/v7.1.0-ol/dist/ol.js' %}"></script>
     <script src="{% static 'js/main.js' %}"></script>
 </head>
 <body>
-    <div id="js-map" class="map"></div>
-
+    <input type="text" id="countryInput">
+    <button type="button" id="button1">get geometry</button>
+    <div id="js-map" class="map" ></div>
 </body>
 </html>

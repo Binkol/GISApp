@@ -6,7 +6,8 @@ from sqlalchemy.orm import sessionmaker
 from mapViewer.alch_models import Countries
 from django.core.serializers import serialize
 from mapViewer.serializers import CountrySerializer
-from geoalchemy2.shape import to_shape 
+from geoalchemy2.shape import to_shape
+from geoalchemy2 import functions
 
 import json
 
@@ -25,6 +26,14 @@ def getCountryData(request):
     shape_geom = to_shape(query.geom)
 
     return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt}) #"geom": query.geom
+
+def getCountryCentre(request):
+    country_name = request.GET.get('name','')
+    query = session.query(Countries).filter_by(name=country_name).first()
+    center_geom = session.scalar(query.geom.ST_Centroid())
+    point = to_shape(center_geom)
+
+    return JsonResponse({"center_point": point.wkt})
 
 
 
