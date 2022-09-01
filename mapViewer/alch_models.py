@@ -16,7 +16,7 @@ class Countries(Base):
     iso3 = Column(String)
     continent = Column(String)
     name = Column(String)
-    iso_3166_1_ =  Column("iso_3166_1_", String)
+    iso_3166_1_field =  Column("iso_3166_1_", String)
     french_shor = Column(String)
 
     def as_dict(self):

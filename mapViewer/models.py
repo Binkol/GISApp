@@ -27,7 +27,3 @@ class SpatialRefSys(models.Model):
     class Meta:
         managed = False
         db_table = 'spatial_ref_sys'
-
-#TODO: create model by hand with declarative base or geoalchemy
-#TODO: insert data using OSGeo4w (-a parameter for appending)
-#TODO: try making request via geoalchemy
