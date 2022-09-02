@@ -33,7 +33,9 @@ def getCountryCentre(request):
     center_geom = session.scalar(query.geom.ST_Centroid())
     point = to_shape(center_geom)
 
-    return JsonResponse({"center_point": point.wkt})
+    return JsonResponse({"center_geom": point.wkt})
+
+    
 
 
 
