@@ -10,7 +10,8 @@ function init()
         }),
         layers: [
             new ol.layer.Tile({
-                source: new ol.source.OSM()
+                source: new ol.source.OSM(),
+                name: "osm",
             })
         ],
         target: 'js-map'
@@ -20,12 +21,14 @@ function init()
         console.log(e.coordinate);
     })
 
-    $("#button1").click({mapObj: map}, drawAndCenterOnCountry);
+    $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
+    $("#clearMapButton").click({mapObj: map}, displayLayers);
+    $('#select1').bind("change", handleOptionsSelect);
 }
 
 function drawAndCenterOnCountry(event)
 {
-    map = event.data.mapObj
+    var map = event.data.mapObj;
     var country_name = $("#countryInput").val();
 
     drawGeometry(map, country_name);
@@ -52,7 +55,8 @@ function drawGeometry(map, country)
               });
             
             var layer = new ol.layer.Vector({
-                source: source
+                source: source,
+                name: country+"Layer"
               });
             
             map.addLayer(layer);
@@ -78,6 +82,46 @@ function centerMap(map, country)
 
             map.getView().setCenter(point_feature.getGeometry().getCoordinates());
             console.log("centered");
+
+            console.log(map.getLayers());
         }
     );
+}
+
+function displayLayers(event)
+{
+    let map = event.data.mapObj;
+    let layers = map.getAllLayers();
+    layers.forEach(function(layer){
+        if(layer.get("name") != "osm")
+        {
+            map.removeLayer(layer);
+        }
+    });
+}
+
+function handleOptionsSelect()
+{
+    let obj = $('#select1');
+    if (obj.val() == "single")
+    {
+        $("#distanceInput").hide();
+        $("#drawSingleGeomButton").show();
+        $("#drawSurrouningGeomButton").hide();
+        $("#radiusLabel").hide();
+
+    }
+    else if (obj.val() == "distance")
+    {
+        $("#distanceInput").show();
+        $("#drawSingleGeomButton").hide();
+        $("#drawSurrouningGeomButton").show();
+        $("#radiusLabel").show();
+
+    }
+}
+
+function drawSurroundingGeometries()
+{
+
 }

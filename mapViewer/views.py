@@ -35,6 +35,18 @@ def getCountryCentre(request):
 
     return JsonResponse({"center_geom": point.wkt})
 
+def surrCountriesInRadius(request):
+    country_name = request.GET.get('name','')
+    radius = country_name = request.GET.get('radius','')
+    
+    #query = session.query(Countries).filter_by(name=country_name)
+    #center_geom = session.scalar(query.geom.ST_Centroid())
+    #point = to_shape(center_geom)
+
+    #return JsonResponse({"center_geom": point.wkt})
+
+    #TODO do lateral join/ find lateral joins on postgis docs
+    return JsonResponse({"pass": "pass"})
     
 
 

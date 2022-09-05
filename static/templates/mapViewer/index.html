@@ -15,8 +15,18 @@
     <script src="{% static 'js/main.js' %}"></script>
 </head>
 <body>
+    <label>Country: </label>
     <input type="text" id="countryInput">
-    <button type="button" id="button1">get geometry</button>
+    <button type="button" id="drawSingleGeomButton">Draw Geometry</button>
+    <button type="button" id="drawSurrouningGeomButton" hidden>Draw Surrounding Countries</button>
+    <label id="radiusLabel" hidden>Radius: </label>
+    <input type="text" id="distanceInput" hidden>
+    <select name="options" id="select1">
+        <option value="single">Single Country</option>
+        <option value="distance">Countries in distance</option>
+    </select>
+    <button type="button" id="clearMapButton">Clear Map</button>
     <div id="js-map" class="map" ></div>
+    
 </body>
 </html>
