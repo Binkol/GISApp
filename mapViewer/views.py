@@ -1,13 +1,16 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, and_
+from sqlalchemy.orm import sessionmaker, aliased
 from mapViewer.alch_models import Countries
 from django.core.serializers import serialize
 from mapViewer.serializers import CountrySerializer
 from geoalchemy2.shape import to_shape
-from geoalchemy2 import functions
+from geoalchemy2 import func
+from geoalchemy2.types import Geography
+from sqlalchemy.sql import cast
+from rest_framework.response import Response
 
 import json
 
@@ -36,17 +39,28 @@ def getCountryCentre(request):
     return JsonResponse({"center_geom": point.wkt})
 
 def surrCountriesInRadius(request):
-    country_name = request.GET.get('name','')
-    radius = country_name = request.GET.get('radius','')
     
-    #query = session.query(Countries).filter_by(name=country_name)
-    #center_geom = session.scalar(query.geom.ST_Centroid())
-    #point = to_shape(center_geom)
+    country_name = request.GET.get('name','')
+    radius = request.GET.get('radius','')
+    
 
-    #return JsonResponse({"center_geom": point.wkt})
+    c1 = aliased(Countries, name='c1')
+    c2 = aliased(Countries, name='c2')
 
-    #TODO do lateral join/ find lateral joins on postgis docs
-    return JsonResponse({"pass": "pass"})
+    #countries within radius from certain country using casting to geography
+    query = session.query(c1, c2).filter(and_(
+        c1.name==country_name,
+        ((func.ST_Distance(
+            cast(c1.geom, Geography(srid=4326)), 
+            cast(c2.geom, Geography(srid=4326))
+            )/1000) < int(radius))
+        )).all()
+
+    data = {}
+    for row in query:
+        data[row.c2.name] = to_shape(row.c2.geom).wkt
+
+    return JsonResponse(data)
     
 
 
