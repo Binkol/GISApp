@@ -4,13 +4,10 @@ from django.urls import reverse
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker, aliased
 from mapViewer.alch_models import Countries
-from django.core.serializers import serialize
-from mapViewer.serializers import CountrySerializer
 from geoalchemy2.shape import to_shape
 from geoalchemy2 import func
 from geoalchemy2.types import Geography
 from sqlalchemy.sql import cast
-from rest_framework.response import Response
 
 import json
 
@@ -30,6 +27,7 @@ def getCountryData(request):
 
     return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt}) #"geom": query.geom
 
+
 def getCountryCentre(request):
     country_name = request.GET.get('name','')
     query = session.query(Countries).filter_by(name=country_name).first()
@@ -38,10 +36,10 @@ def getCountryCentre(request):
 
     return JsonResponse({"center_geom": point.wkt})
 
-def surrCountriesInRadius(request):
-    
+
+def surrCountriesInRadius(request):    
     country_name = request.GET.get('name','')
-    radius = request.GET.get('radius','')
+    distance = request.GET.get('distance','')
     
 
     c1 = aliased(Countries, name='c1')
@@ -53,7 +51,7 @@ def surrCountriesInRadius(request):
         ((func.ST_Distance(
             cast(c1.geom, Geography(srid=4326)), 
             cast(c2.geom, Geography(srid=4326))
-            )/1000) < int(radius))
+            )/1000) < int(distance))
         )).all()
 
     data = {}

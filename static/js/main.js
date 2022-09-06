@@ -22,7 +22,8 @@ function init()
     })
 
     $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
-    $("#clearMapButton").click({mapObj: map}, displayLayers);
+    $("#clearMapButton").click({mapObj: map}, removeLayers);
+    $("#drawCountriesInDist").click({mapObj: map}, drawCountriesInDistance);
     $('#select1').bind("change", handleOptionsSelect);
 }
 
@@ -88,7 +89,7 @@ function centerMap(map, country)
     );
 }
 
-function displayLayers(event)
+function removeLayers(event)
 {
     let map = event.data.mapObj;
     let layers = map.getAllLayers();
@@ -107,7 +108,7 @@ function handleOptionsSelect()
     {
         $("#distanceInput").hide();
         $("#drawSingleGeomButton").show();
-        $("#drawSurrouningGeomButton").hide();
+        $("#drawCountriesInDist").hide();
         $("#radiusLabel").hide();
 
     }
@@ -115,13 +116,46 @@ function handleOptionsSelect()
     {
         $("#distanceInput").show();
         $("#drawSingleGeomButton").hide();
-        $("#drawSurrouningGeomButton").show();
+        $("#drawCountriesInDist").show();
         $("#radiusLabel").show();
-
+    }
+    else if (obj.val() == "neighbours")
+    {
+        console.log("not implemented")
     }
 }
 
-function drawSurroundingGeometries()
+function drawCountriesInDistance(event)
 {
+    var map = event.data.mapObj;
+    var country_name = $("#countryInput").val();
+    var dist = $("#distanceInput").val();
+    
+    $.getJSON(
+        "http://127.0.0.1:8000/mapViewer/surrCountriesInRadius/",
+        {name : country_name, distance: dist},
+        function(response, status){
+            for (const [key, value] of Object.entries(response)) {
+                wkt_geom = value;
+                var format = new ol.format.WKT()
+                
+                const polygonFeature = format.readFeature(wkt_geom, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857',
+                });
 
+                let source = new ol.source.Vector({
+                    features: [polygonFeature]
+                });
+                
+                var layer = new ol.layer.Vector({
+                    source: source,
+                    name: key+"Layer"
+                });
+                
+                map.addLayer(layer);
+                console.log("Added: ", key);
+            }
+        }
+    );
 }
