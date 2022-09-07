@@ -7,4 +7,6 @@ urlpatterns = [
     path('countryData/', views.getCountryData, name='getCountryData'),
     path('countryCentre/', views.getCountryCentre, name='getCountryCentre'),
     path('surrCountriesInRadius/', views.surrCountriesInRadius, name='surrCountriesInRadius'),
+    path('getNeighbours/', views.getNeighbours, name='getNeighbours'),
+
 ]

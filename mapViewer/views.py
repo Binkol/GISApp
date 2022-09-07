@@ -59,6 +59,27 @@ def surrCountriesInRadius(request):
         data[row.c2.name] = to_shape(row.c2.geom).wkt
 
     return JsonResponse(data)
+
+def getNeighbours(request):    
+    country_name = request.GET.get('name','')
+    distance = 1
+    
+    c1 = aliased(Countries, name='c1')
+    c2 = aliased(Countries, name='c2')
+
+    query = session.query(c1, c2).filter(and_(
+        c1.name==country_name,
+        ((func.ST_Distance(
+            cast(c1.geom, Geography(srid=4326)), 
+            cast(c2.geom, Geography(srid=4326))
+            )/1000) < int(distance))
+        )).all()
+
+    data = {}
+    for row in query:
+        data[row.c2.name] = to_shape(row.c2.geom).wkt
+
+    return JsonResponse(data)
     
 
 

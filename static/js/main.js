@@ -24,6 +24,7 @@ function init()
     $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
     $("#clearMapButton").click({mapObj: map}, removeLayers);
     $("#drawCountriesInDist").click({mapObj: map}, drawCountriesInDistance);
+    $("#drawNeighboursButton").click({mapObj: map}, drawNeighbours);
     $('#select1').bind("change", handleOptionsSelect);
 }
 
@@ -110,7 +111,7 @@ function handleOptionsSelect()
         $("#drawSingleGeomButton").show();
         $("#drawCountriesInDist").hide();
         $("#radiusLabel").hide();
-
+        $("#drawNeighboursButton").hide();
     }
     else if (obj.val() == "distance")
     {
@@ -118,10 +119,15 @@ function handleOptionsSelect()
         $("#drawSingleGeomButton").hide();
         $("#drawCountriesInDist").show();
         $("#radiusLabel").show();
+        $("#drawNeighboursButton").hide();
     }
     else if (obj.val() == "neighbours")
     {
-        console.log("not implemented")
+        $("#distanceInput").hide();
+        $("#drawSingleGeomButton").hide();
+        $("#drawCountriesInDist").hide();
+        $("#radiusLabel").hide();
+        $("#drawNeighboursButton").show();
     }
 }
 
@@ -134,6 +140,40 @@ function drawCountriesInDistance(event)
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/surrCountriesInRadius/",
         {name : country_name, distance: dist},
+        function(response, status){
+            for (const [key, value] of Object.entries(response)) {
+                wkt_geom = value;
+                var format = new ol.format.WKT()
+                
+                const polygonFeature = format.readFeature(wkt_geom, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857',
+                });
+
+                let source = new ol.source.Vector({
+                    features: [polygonFeature]
+                });
+                
+                var layer = new ol.layer.Vector({
+                    source: source,
+                    name: key+"Layer"
+                });
+                
+                map.addLayer(layer);
+                console.log("Added: ", key);
+            }
+        }
+    );
+}
+
+function drawNeighbours(event)
+{
+    var map = event.data.mapObj;
+    var country_name = $("#countryInput").val();
+    
+    $.getJSON(
+        "http://127.0.0.1:8000/mapViewer/getNeighbours/",
+        {name : country_name},
         function(response, status){
             for (const [key, value] of Object.entries(response)) {
                 wkt_geom = value;
