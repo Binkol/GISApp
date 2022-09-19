@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-gi#rgu!bzo2$35)v)lx0-7f$t2y2n58zq47a(8tzfa!o08se^=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     
     'geojson_serializer',
     'rest_framework',
+    'corsheaders',
 
     'mapViewer',
 ]
@@ -53,7 +54,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+
+CORS_ORIGIN_ALLOW_ALL = True   
 
 ROOT_URLCONF = 'geoproj.urls'
 

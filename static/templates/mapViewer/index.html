@@ -31,6 +31,20 @@
         <option value="neighbours">Neighbours</option>
     </select>
     <button type="button" id="clearMapButton">Clear Map</button>
+
+    <div>
+        <form name="mapStyleChoice">
+            <input type="radio" id="choice1" name="baseMap" value="osm" />
+            <label for="contactChoice1">OSM</label>
+        
+            <input type="radio" id="choice2" name="baseMap" value="bikeLayer" />
+            <label for="contactChoice2">Cycle roads</label>
+        
+            <input type="radio" id="choice3" name="baseMap" value="bingAerial" />
+            <label for="contactChoice3">Aerial</label>
+        </form>
+    </div>
+
     <div id="js-map" class="map" ></div>
     
 </body>

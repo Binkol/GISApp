@@ -2,23 +2,53 @@ window.onload = init;
 
 function init()
 {
+    const osm = new ol.layer.Tile({
+        source: new ol.source.OSM(),
+        name: "osm",
+        visible: true,
+    })
+
+    const bikeLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url:
+            'https://{a-c}.tile.thunderforest.com/cycle/{z}/{x}/{y}.png' +
+            '?apikey=06d51f0ca41e4236988bd2848bdf3128',
+        }),
+        name: "bikeLayer",
+        visible: false,
+      })
+
+    const bingAerial = new ol.layer.Tile({
+        visible: false,
+        preload: Infinity,
+        source: new ol.source.BingMaps({
+          key: 'At8y-S6N1ZLw8iX2p3IbUMTe9WpQqA3Gd8E6EIgCzLtM4RcG9e6sR4DxiJYkZMae',
+          imagerySet: 'Aerial',
+        }),
+        name: "bingAerial"
+      })
+
     
+    const layerGroup = new ol.layer.Group({
+        layers: [
+            osm,
+            bikeLayer,
+            bingAerial
+        ]
+    })
+
     const map = new ol.Map({
         view: new ol.View({
             center: [1887156.7982506095, 6870894.219859836],
             zoom: 4,
         }),
-        layers: [
-            new ol.layer.Tile({
-                source: new ol.source.OSM(),
-                name: "osm",
-            })
-        ],
         target: 'js-map'
     })
 
-    map.on('click', function(e){
-        console.log(e.coordinate);
+    map.addLayer(layerGroup);
+
+    map.on('click', function(event){
+        console.log(event.coordinate);
     })
 
     $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
@@ -26,6 +56,23 @@ function init()
     $("#drawCountriesInDist").click({mapObj: map}, drawCountriesInDistance);
     $("#drawNeighboursButton").click({mapObj: map}, drawNeighbours);
     $('#select1').bind("change", handleOptionsSelect);
+
+    var mapStyleRadios = document.mapStyleChoice.baseMap;
+    for(var radio of mapStyleRadios)
+    {
+        radio.addEventListener('change', function(event){
+            changeMapStyle(event, layerGroup);
+        });
+    }
+}
+
+function changeMapStyle(event, layerGroup)
+{
+    let selectedMapName = event.target.value;
+    layerGroup.getLayers().forEach(function(element, index, array){
+        layerName = element.get('name');
+        element.setVisible(selectedMapName === layerName);
+    })
 }
 
 function drawAndCenterOnCountry(event)
