@@ -6,7 +6,7 @@ function init()
         source: new ol.source.OSM(),
         name: "osm",
         visible: true,
-    })
+    });
 
     const bikeLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
@@ -16,7 +16,7 @@ function init()
         }),
         name: "bikeLayer",
         visible: false,
-      })
+      });
 
     const bingAerial = new ol.layer.Tile({
         visible: false,
@@ -26,7 +26,7 @@ function init()
           imagerySet: 'Aerial',
         }),
         name: "bingAerial"
-      })
+      });
 
     
     const layerGroup = new ol.layer.Group({
@@ -35,17 +35,19 @@ function init()
             bikeLayer,
             bingAerial
         ]
-    })
+    });
 
     const map = new ol.Map({
         view: new ol.View({
-            center: [1887156.7982506095, 6870894.219859836],
-            zoom: 4,
+            center: [2116228.358766089, 6856093.900862803],
+            zoom: 3,
         }),
         target: 'js-map'
-    })
+    });
 
     map.addLayer(layerGroup);
+
+    
 
     map.on('click', function(event){
         console.log(event.coordinate);
@@ -64,6 +66,35 @@ function init()
             changeMapStyle(event, layerGroup);
         });
     }
+
+    $("#switchToPolandView").click({mapObj: map}, switchToPolandView);
+    $("#switchToWorldView").click({mapObj: map}, switchToWorldView);
+
+}
+
+function switchToPolandView(event)
+{
+    $("#switchToPolandView").hide();
+    $("#switchToWorldView").show();
+
+    const map = event.data.mapObj
+    map.setView(new ol.View({
+        center: [2116228.358766089, 6856093.900862803],
+        extent: [1400705, 6150028, 2951816, 7465513],
+        zoom : 5
+      }));
+}
+
+function switchToWorldView(event)
+{
+    $("#switchToPolandView").show();
+    $("#switchToWorldView").hide();
+    
+    const map = event.data.mapObj
+    map.setView(new ol.View({
+        center: [2116228.358766089, 6856093.900862803],
+        zoom: 3,
+    }));
 }
 
 function changeMapStyle(event, layerGroup)
