@@ -69,13 +69,47 @@ function init()
 
     $("#switchToPolandView").click({mapObj: map}, switchToPolandView);
     $("#switchToWorldView").click({mapObj: map}, switchToWorldView);
+    $("#drawCounties").click({mapObj: map}, drawCounties);
 
+}
+
+function drawCounties(event)
+{
+    var map = event.data.mapObj;
+    
+    $.getJSON(
+        "http://127.0.0.1:8000/mapViewer/counties/",
+        {},
+        function(response, status){
+            for (const [key, value] of Object.entries(response)) {
+                wkt_geom = value;
+                var format = new ol.format.WKT()
+                
+                const polygonFeature = format.readFeature(wkt_geom, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857',
+                });
+
+                let source = new ol.source.Vector({
+                    features: [polygonFeature]
+                });
+                
+                var layer = new ol.layer.Vector({
+                    source: source,
+                    name: key+"Layer"
+                });
+                
+                map.addLayer(layer);
+            }
+        }
+    );
 }
 
 function switchToPolandView(event)
 {
     $("#switchToPolandView").hide();
     $("#switchToWorldView").show();
+    $("#drawCounties").show();
 
     const map = event.data.mapObj
     map.setView(new ol.View({
@@ -89,6 +123,7 @@ function switchToWorldView(event)
 {
     $("#switchToPolandView").show();
     $("#switchToWorldView").hide();
+    $("#drawCounties").hide();
     
     const map = event.data.mapObj
     map.setView(new ol.View({
@@ -140,7 +175,6 @@ function drawGeometry(map, country)
               });
             
             map.addLayer(layer);
-            console.log("done");
         }
     );
 }
@@ -161,9 +195,6 @@ function centerMap(map, country)
               });
 
             map.getView().setCenter(point_feature.getGeometry().getCoordinates());
-            console.log("centered");
-
-            console.log(map.getLayers());
         }
     );
 }

@@ -22,6 +22,18 @@ class Countries(Base):
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
+
+class County(Base):
+    __tablename__ = 'counties'
+
+    id = Column(Integer, primary_key=True)
+    geom = Column(Geometry('POLYGON'))
+    name = Column(String)
+
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 if __name__ == "__main__":
     engine = create_engine('postgresql://postgres:postgres@172.23.0.2:5432/postgres', echo=True)
-    Countries.__table__.create(engine)
+    #Countries.__table__.create(engine)
+    County.__table__.create(engine)

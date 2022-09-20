@@ -8,5 +8,5 @@ urlpatterns = [
     path('countryCentre/', views.getCountryCentre, name='getCountryCentre'),
     path('surrCountriesInRadius/', views.surrCountriesInRadius, name='surrCountriesInRadius'),
     path('getNeighbours/', views.getNeighbours, name='getNeighbours'),
-
+    path('counties/', views.getCounties, name='getCounties'),
 ]
