@@ -53,6 +53,40 @@ function init()
         console.log(event.coordinate);
     })
 
+
+    const selectStyle = new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: '#eeeeee',
+        }),
+        stroke: new ol.style.Stroke({
+          color: 'rgba(255, 255, 255, 0.7)',
+          width: 2,
+        }),
+      });
+
+    let selected = null;
+    map.on('pointermove', function (e) {
+        if (selected !== null) {
+            selected.setStyle(undefined);
+            selected = null;
+        }
+
+        map.forEachFeatureAtPixel(e.pixel, function (feature) {
+            selected = feature;
+            selectStyle.getFill().setColor(feature.get('COLOR') || '#eeeeee');
+            feature.setStyle(selectStyle);
+            return true;
+        });
+        console.log(selected.get("name"));
+        // if (selected) {
+        //     status.innerHTML = selected.get('ECO_NAME');
+        // } else {
+        //     status.innerHTML = '&nbsp;';
+        // }
+    });
+
+
+
     $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
     $("#clearMapButton").click({mapObj: map}, removeLayers);
     $("#drawCountriesInDist").click({mapObj: map}, drawCountriesInDistance);
@@ -82,24 +116,28 @@ function drawCounties(event)
         {},
         function(response, status){
             for (const [key, value] of Object.entries(response)) {
-                wkt_geom = value;
-                var format = new ol.format.WKT()
+                wkt_geoms = value;
+                for (const [geom_id, geom_value] of Object.entries(wkt_geoms)){
+                    let format = new ol.format.WKT()
                 
-                const polygonFeature = format.readFeature(wkt_geom, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857',
-                });
+                    const polygonFeature = format.readFeature(geom_value, {
+                        dataProjection: 'EPSG:4326',
+                        featureProjection: 'EPSG:3857',
+                    });
 
-                let source = new ol.source.Vector({
-                    features: [polygonFeature]
-                });
-                
-                var layer = new ol.layer.Vector({
-                    source: source,
-                    name: key+"Layer"
-                });
-                
-                map.addLayer(layer);
+                    polygonFeature.setProperties({'name': key});
+
+                    let source = new ol.source.Vector({
+                        features: [polygonFeature]
+                    });
+                    
+                    var layer = new ol.layer.Vector({
+                        source: source,
+                        name: key + "Layer"
+                    });
+                    
+                    map.addLayer(layer);
+                }
             }
         }
     );

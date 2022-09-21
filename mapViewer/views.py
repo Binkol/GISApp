@@ -15,6 +15,15 @@ engine = create_engine('postgresql://postgres:postgres@172.23.0.2:5432/postgres'
 Session = sessionmaker(bind=engine)
 session = Session()
 
+class MultipleGeomDict(dict):
+    def __setitem__(self, key, value):
+        try:
+            self[key]
+        except KeyError:
+            super(MultipleGeomDict, self).__setitem__(key, {})
+        calc_id = len(self[key])
+        self[key][calc_id] = value
+
 
 def index(request):
     return render(request, 'mapViewer/index.html', {})
@@ -30,7 +39,7 @@ def getCountryData(request):
 
 def getCounties(request):
     query = session.query(County).all()
-    data = {}
+    data = MultipleGeomDict()
     for row in query:
         data[row.name] = to_shape(row.geom).wkt
     return JsonResponse(data)
