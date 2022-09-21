@@ -45,10 +45,19 @@ function init()
         target: 'js-map'
     });
 
+
+    var overlay = new ol.Overlay({
+        element: $("#overlay")[0],
+        autoPan: true,
+        autoPanAnimation: {
+             duration: 250
+        }
+    });
+    
+    map.addOverlay(overlay);
     map.addLayer(layerGroup);
 
     
-
     map.on('click', function(event){
         console.log(event.coordinate);
     })
@@ -72,20 +81,34 @@ function init()
         }
 
         map.forEachFeatureAtPixel(e.pixel, function (feature) {
+            //hover style
             selected = feature;
             selectStyle.getFill().setColor(feature.get('COLOR') || '#eeeeee');
             feature.setStyle(selectStyle);
+            
+            //overlay
+            var coordinate = e.coordinate;
+            overlay.setPosition(coordinate);
+            hasFeature = true;
+
             return true;
         });
-        console.log(selected.get("name"));
-        // if (selected) {
-        //     status.innerHTML = selected.get('ECO_NAME');
-        // } else {
-        //     status.innerHTML = '&nbsp;';
-        // }
+        //TODO: hover true
+
+        //hover style
+        if (selected) {
+            $("#status").text(selected.get('name'));
+            $("#status").show();
+        } else {
+            $("#status").text('');
+            $("#status").hide();
+        }
+
+        //overlay
+        if (!hasFeature) {
+            overlay.setPosition(undefined);
+        }
     });
-
-
 
     $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
     $("#clearMapButton").click({mapObj: map}, removeLayers);
@@ -105,12 +128,14 @@ function init()
     $("#switchToWorldView").click({mapObj: map}, switchToWorldView);
     $("#drawCounties").click({mapObj: map}, drawCounties);
 
+    
+
 }
+
 
 function drawCounties(event)
 {
     var map = event.data.mapObj;
-    
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/counties/",
         {},
