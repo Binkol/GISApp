@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, create_engine, BigInteger
 from geoalchemy2 import Geometry
 
 
@@ -32,6 +32,30 @@ class County(Base):
 
     def as_dict(self):
        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class Airport(Base):
+    __tablename__ = 'airports'
+
+    id = Column(Integer, primary_key=True)
+    geom = Column(Geometry('POLYGON'))
+    scalerank = Column(BigInteger)
+    featurecla = Column(String)
+    type = Column(String)
+    name = Column(String)
+    abbrev = Column(String)
+    location = Column(String)
+    gps_code = Column(String)
+    iata_code = Column(String)
+    wikipedia = Column(String)
+    natlscale = Column(BigInteger)
+    cartodb_id = Column(BigInteger)
+    created_at = Column(String)
+    updated_at = Column(String)
+
+    def as_dict(self):
+       return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 
 if __name__ == "__main__":
     engine = create_engine('postgresql://postgres:postgres@172.23.0.2:5432/postgres', echo=True)

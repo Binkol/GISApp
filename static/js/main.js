@@ -144,6 +144,42 @@ function init()
         $(this).hide();
         $("#hoverButtonOn").show();
     }); 
+
+    $("#drawAirports").click({mapObj: map}, drawAirports);
+}
+
+
+
+function drawAirports(event)
+{
+    var map = event.data.mapObj;
+    $.getJSON(
+        "http://127.0.0.1:8000/mapViewer/airports/",
+        {},
+        function(response, status){
+            for (const [id, data] of Object.entries(response)) {
+                let format = new ol.format.WKT()
+                
+                const polygonFeature = format.readFeature(data.geom, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857',
+                });
+
+                polygonFeature.setProperties({'name': data.name});
+
+                let source = new ol.source.Vector({
+                    features: [polygonFeature]
+                });
+                
+                var layer = new ol.layer.Vector({
+                    source: source,
+                    name: id + "Layer"
+                });
+                
+                map.addLayer(layer);
+            }
+        }
+    );
 }
 
 
@@ -181,6 +217,7 @@ function drawCounties(event)
         }
     );
 }
+
 
 function userInputLayers(layer)
 {
@@ -235,7 +272,7 @@ function switchToWorldView(event)
         center: [2116228.358766089, 6856093.900862803],
         zoom: 3,
     }));
-}
+} 
 
 function changeMapStyle(event, layerGroup)
 {

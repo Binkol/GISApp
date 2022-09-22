@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker, aliased
-from mapViewer.alch_models import Countries, County
+from mapViewer.alch_models import Countries, County, Airport
 from geoalchemy2.shape import to_shape
 from geoalchemy2 import func
 from geoalchemy2.types import Geography
@@ -34,7 +34,7 @@ def getCountryData(request):
     query = session.query(Countries).filter_by(name=country_name).first()
     shape_geom = to_shape(query.geom)
 
-    return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt}) #"geom": query.geom
+    return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt})
 
 
 def getCounties(request):
@@ -99,6 +99,12 @@ def getNeighbours(request):
     return JsonResponse(data)
     
 
-
-
-  
+def getAirports(request):
+    query = session.query(Airport).all()
+    data = {}
+    #print(dict(query.__dict__))
+    for row in query:
+        data[row.id] = row.as_dict()
+        data[row.id]["geom"] = to_shape(row.geom).wkt
+        data[row.id].pop("id")
+    return JsonResponse(data)

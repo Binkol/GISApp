@@ -9,4 +9,6 @@ urlpatterns = [
     path('surrCountriesInRadius/', views.surrCountriesInRadius, name='surrCountriesInRadius'),
     path('getNeighbours/', views.getNeighbours, name='getNeighbours'),
     path('counties/', views.getCounties, name='getCounties'),
+    path('airports/', views.getAirports, name='getAirports'),
+
 ]
