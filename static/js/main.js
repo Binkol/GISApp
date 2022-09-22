@@ -2,6 +2,8 @@ window.onload = init;
 
 function init()
 {
+    var hoverOn = false;
+
     const osm = new ol.layer.Tile({
         source: new ol.source.OSM(),
         name: "osm",
@@ -74,6 +76,7 @@ function init()
       });
 
     let selected = null;
+    let hasFeature = false;
     map.on('pointermove', function (e) {
         if (selected !== null) {
             selected.setStyle(undefined);
@@ -81,20 +84,22 @@ function init()
         }
 
         map.forEachFeatureAtPixel(e.pixel, function (feature) {
-            //hover style
-            selected = feature;
-            selectStyle.getFill().setColor(feature.get('COLOR') || '#eeeeee');
-            feature.setStyle(selectStyle);
-            
-            //overlay
-            var coordinate = e.coordinate;
-            overlay.setPosition(coordinate);
-            hasFeature = true;
+            if(hoverOn)
+            {
+                //hover style
+                selected = feature;
+                selectStyle.getFill().setColor(feature.get('COLOR') || '#eeeeee');
+                feature.setStyle(selectStyle);
+                
+                //overlay
+                var coordinate = e.coordinate;
+                overlay.setPosition(coordinate);
+                hasFeature = true;
 
-            return true;
+                return true;
+            }
         });
-        //TODO: hover true
-
+        
         //hover style
         if (selected) {
             $("#status").text(selected.get('name'));
@@ -128,8 +133,17 @@ function init()
     $("#switchToWorldView").click({mapObj: map}, switchToWorldView);
     $("#drawCounties").click({mapObj: map}, drawCounties);
 
-    
+    $("#hoverButtonOn").click(function(){
+        hoverOn = true;
+        $(this).hide();
+        $("#hoverButtonOff").show();
+    });
 
+    $("#hoverButtonOff").click(function(){
+        hoverOn = false;
+        $(this).hide();
+        $("#hoverButtonOn").show();
+    }); 
 }
 
 
@@ -168,12 +182,43 @@ function drawCounties(event)
     );
 }
 
+function userInputLayers(layer)
+{
+    if(layer == "poland")
+    {
+        $("#switchToPolandView").hide();
+        $("#switchToWorldView").show();
+        $("#drawCounties").show();
+
+        $("#select1").hide();
+        $("#drawSingleGeomButton").hide();
+        $("#countryInput").hide();
+        $("#countryLabel").hide();
+
+        $("#distanceLabel").hide();
+        $("#distanceInput").hide();
+        $("#drawCountriesInDist").hide();
+        $("#drawNeighboursButton").hide();
+
+
+
+    }
+    else if(layer == "world")
+    {
+        $("#switchToPolandView").show();
+        $("#switchToWorldView").hide();
+        $("#drawCounties").hide();
+
+        $("#select1").show();
+        $("#drawSingleGeomButton").show();
+        $("#countryInput").show();
+        $("#countryLabel").show();
+    }
+}
+
 function switchToPolandView(event)
 {
-    $("#switchToPolandView").hide();
-    $("#switchToWorldView").show();
-    $("#drawCounties").show();
-
+    userInputLayers("poland");
     const map = event.data.mapObj
     map.setView(new ol.View({
         center: [2116228.358766089, 6856093.900862803],
@@ -184,10 +229,7 @@ function switchToPolandView(event)
 
 function switchToWorldView(event)
 {
-    $("#switchToPolandView").show();
-    $("#switchToWorldView").hide();
-    $("#drawCounties").hide();
-    
+    userInputLayers("world");
     const map = event.data.mapObj
     map.setView(new ol.View({
         center: [2116228.358766089, 6856093.900862803],
@@ -282,7 +324,7 @@ function handleOptionsSelect()
         $("#distanceInput").hide();
         $("#drawSingleGeomButton").show();
         $("#drawCountriesInDist").hide();
-        $("#radiusLabel").hide();
+        $("#distanceLabel").hide();
         $("#drawNeighboursButton").hide();
     }
     else if (obj.val() == "distance")
@@ -290,7 +332,7 @@ function handleOptionsSelect()
         $("#distanceInput").show();
         $("#drawSingleGeomButton").hide();
         $("#drawCountriesInDist").show();
-        $("#radiusLabel").show();
+        $("#distanceLabel").show();
         $("#drawNeighboursButton").hide();
     }
     else if (obj.val() == "neighbours")
@@ -298,7 +340,7 @@ function handleOptionsSelect()
         $("#distanceInput").hide();
         $("#drawSingleGeomButton").hide();
         $("#drawCountriesInDist").hide();
-        $("#radiusLabel").hide();
+        $("#distanceLabel").hide();
         $("#drawNeighboursButton").show();
     }
 }
