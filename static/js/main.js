@@ -62,6 +62,19 @@ function init()
     
     map.on('click', function(event){
         console.log(event.coordinate);
+        map.forEachFeatureAtPixel(event.pixel, function (feature) {
+            selected = feature;
+            wiki = selected.get("wiki")
+            if(wiki)
+            {
+                window.open(wiki)
+            }
+            else
+            {
+                console.log("No wiki for this feature")
+            }
+            return true;
+        });
     })
 
 
@@ -77,11 +90,15 @@ function init()
 
     let selected = null;
     let hasFeature = false;
+
+    const element = overlay.getElement();
+    
     map.on('pointermove', function (e) {
         if (selected !== null) {
             selected.setStyle(undefined);
             selected = null;
         }
+        var popover = bootstrap.Popover.getInstance(element);
 
         map.forEachFeatureAtPixel(e.pixel, function (feature) {
             if(hoverOn)
@@ -96,22 +113,27 @@ function init()
                 overlay.setPosition(coordinate);
                 hasFeature = true;
 
+                if (popover) {
+                    popover.dispose();
+                }
+                popover = new bootstrap.Popover(element, {
+                    animation: false,
+                    container: element,
+                    content: '<p>' + selected.get("name") + '</p>',
+                    html: true,
+                    placement: 'top',
+                    title: 'Airport name: ',
+                });
+                popover.show();
                 return true;
             }
         });
-        
-        //hover style
-        if (selected) {
-            $("#status").text(selected.get('name'));
-            $("#status").show();
-        } else {
-            $("#status").text('');
-            $("#status").hide();
-        }
 
         //overlay
         if (!hasFeature) {
+            console.log("asd");
             overlay.setPosition(undefined);
+            popover.hide();
         }
     });
 
@@ -146,8 +168,43 @@ function init()
     }); 
 
     $("#drawAirports").click({mapObj: map}, drawAirports);
+    $("#drawCountryAirports").click({mapObj: map}, drawCountryAirports);
 }
 
+
+function drawCountryAirports(event)
+{
+    var country_name = $("#countryInput").val();
+    var map = event.data.mapObj;
+    $.getJSON(
+        "http://127.0.0.1:8000/mapViewer/countryAirports/",
+        {name : country_name},
+        function(response, status){
+            for (const [name, data] of Object.entries(response)) {
+                console.log(name, data.geom);
+                let format = new ol.format.WKT()
+                
+                const polygonFeature = format.readFeature(data.geom, {
+                     dataProjection: 'EPSG:4326',
+                     featureProjection: 'EPSG:3857',
+                 });
+
+                polygonFeature.setProperties({'name': name, "wiki": data.wiki});
+
+                let source = new ol.source.Vector({
+                    features: [polygonFeature]
+                });
+                
+                var layer = new ol.layer.Vector({
+                    source: source,
+                    name: name + "AirportLayer"
+                });
+                
+                map.addLayer(layer);
+            }
+        }
+    );
+}
 
 
 function drawAirports(event)
@@ -165,7 +222,7 @@ function drawAirports(event)
                     featureProjection: 'EPSG:3857',
                 });
 
-                polygonFeature.setProperties({'name': data.name});
+                polygonFeature.setProperties({'name': data.name, "wiki": data.wikipedia});
 
                 let source = new ol.source.Vector({
                     features: [polygonFeature]
@@ -236,9 +293,6 @@ function userInputLayers(layer)
         $("#distanceInput").hide();
         $("#drawCountriesInDist").hide();
         $("#drawNeighboursButton").hide();
-
-
-
     }
     else if(layer == "world")
     {

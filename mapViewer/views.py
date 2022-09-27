@@ -102,9 +102,24 @@ def getNeighbours(request):
 def getAirports(request):
     query = session.query(Airport).all()
     data = {}
-    #print(dict(query.__dict__))
+    
     for row in query:
         data[row.id] = row.as_dict()
         data[row.id]["geom"] = to_shape(row.geom).wkt
         data[row.id].pop("id")
+    return JsonResponse(data)
+
+
+def getCountryAirports(request):
+    country_name = request.GET.get('name','')
+
+    c = aliased(Countries, name='c')
+    a = aliased(Airport, name='a')
+
+    output = session.query(c, a).filter(and_(func.ST_Contains(c.geom, a.geom), c.name==country_name)).all()
+
+    data = {}
+    for row in output:
+        data[row.a.name] = {"geom": to_shape(row.a.geom).wkt, "wiki": row.a.wikipedia}
+
     return JsonResponse(data)

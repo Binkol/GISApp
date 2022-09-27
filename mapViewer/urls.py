@@ -10,5 +10,6 @@ urlpatterns = [
     path('getNeighbours/', views.getNeighbours, name='getNeighbours'),
     path('counties/', views.getCounties, name='getCounties'),
     path('airports/', views.getAirports, name='getAirports'),
+    path('countryAirports/', views.getCountryAirports, name='getCountryAirports'),
 
 ]
