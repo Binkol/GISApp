@@ -189,27 +189,12 @@ function drawCountryAirports(event)
         {name : country_name},
         function(response, status){
             for (const [name, data] of Object.entries(response)) {
-                let format = new ol.format.WKT()
-                
-                const polygonFeature = format.readFeature(data.geom, {
-                     dataProjection: 'EPSG:4326',
-                     featureProjection: 'EPSG:3857',
-                 });
+                let properties = {'name': name, 
+                                  'wiki': data.wikipedia,
+                                  'type': 'airport'  
+                                };
+                let layer = layerFromWKTgeom(data.geom, properties);
 
-                 polygonFeature.setProperties({'name': data.name, 
-                                               'wiki': data.wikipedia,
-                                               'type': 'airport'  
-                                            });
-
-                let source = new ol.source.Vector({
-                    features: [polygonFeature]
-                });
-                
-                var layer = new ol.layer.Vector({
-                    source: source,
-                    name: name + "AirportLayer"
-                });
-                
                 countryAirportsLayerGroup.getLayers().push(layer);
             }
             map.addLayer(countryAirportsLayerGroup);
@@ -231,27 +216,11 @@ function drawAirports(event)
         {},
         function(response, status){
             for (const [id, data] of Object.entries(response)) {
-                let format = new ol.format.WKT()
-                
-                const polygonFeature = format.readFeature(data.geom, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857',
-                });
+                let properties = {'name': data.name, 
+                                  'wiki': data.wikipedia,
+                                  'type': 'airport'};
+                let layer = layerFromWKTgeom(data.geom, properties);
 
-                polygonFeature.setProperties({'name': data.name, 
-                                              'wiki': data.wikipedia,
-                                              'type': 'airport'  
-                                            });
-
-                let source = new ol.source.Vector({
-                    features: [polygonFeature]
-                });
-                
-                var layer = new ol.layer.Vector({
-                    source: source,
-                    name: id + "Layer",
-                });
-                
                 airportsLayerGroup.getLayers().push(layer);
             }
             map.addLayer(airportsLayerGroup);
@@ -275,23 +244,9 @@ function drawCounties(event)
             for (const [key, value] of Object.entries(response)) {
                 wkt_geoms = value;
                 for (const [geom_id, geom_value] of Object.entries(wkt_geoms)){
-                    let format = new ol.format.WKT()
-                
-                    const polygonFeature = format.readFeature(geom_value, {
-                        dataProjection: 'EPSG:4326',
-                        featureProjection: 'EPSG:3857',
-                    });
-
-                    polygonFeature.setProperties({'name': key, 'type': 'county'});
-
-                    let source = new ol.source.Vector({
-                        features: [polygonFeature]
-                    });
                     
-                    var layer = new ol.layer.Vector({
-                        source: source,
-                        name: key + "Layer"
-                    });
+                    let properties = {'name': key, 'type': 'county'};
+                    let layer = layerFromWKTgeom(geom_value, properties);
                     
                     countyLayerGroup.getLayers().push(layer);
                 }
@@ -384,30 +339,15 @@ function drawGeometry(map, country)
         });
     }
     
-
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/countryData/",
         {name : country},
         function(response, status){
             wkt_geom = response['geom'];
             let name = response['name'];
-            var format = new ol.format.WKT()
             
-            const polygonFeature = format.readFeature(wkt_geom, {
-                dataProjection: 'EPSG:4326',
-                featureProjection: 'EPSG:3857',
-              });
-
-            polygonFeature.setProperties({'name': name, 'type': 'country'});
-
-            let source = new ol.source.Vector({
-                features: [polygonFeature]
-              });
-            
-            var layer = new ol.layer.Vector({
-                source: source,
-                name: country+"Layer"
-              });
+            let properties = {'name': name, 'type': 'country'};
+            let layer = layerFromWKTgeom(wkt_geom, properties);
               
             countriesLayerGroup.getLayers().push(layer);
         }
@@ -501,23 +441,9 @@ function drawCountriesInDistance(event)
             for (const [key, value] of Object.entries(response)) {
                 wkt_geom = value;
                 let name = key;
-                var format = new ol.format.WKT()
-                
-                const polygonFeature = format.readFeature(wkt_geom, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857',
-                });
 
-                polygonFeature.setProperties({'name': name, 'type': 'country'});
-
-                let source = new ol.source.Vector({
-                    features: [polygonFeature]
-                });
-                
-                var layer = new ol.layer.Vector({
-                    source: source,
-                    name: key+"Layer"
-                });
+                let properties = {'name': name, 'type': 'country'};
+                let layer = layerFromWKTgeom(wkt_geom, properties);
                 
                 countriesLayerGroup.getLayers().push(layer);
                 console.log("Added: ", key);
@@ -549,24 +475,10 @@ function drawNeighbours(event)
             for (const [key, value] of Object.entries(response)) {
                 wkt_geom = value;
                 let name = key;
-                var format = new ol.format.WKT()
                 
-                const polygonFeature = format.readFeature(wkt_geom, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857',
-                });
+                let properties = {'name': name, 'type': 'country'};
+                let layer = layerFromWKTgeom(wkt_geom, properties);
 
-                polygonFeature.setProperties({'name': name, 'type': 'country'});
-
-                let source = new ol.source.Vector({
-                    features: [polygonFeature]
-                });
-                
-                var layer = new ol.layer.Vector({
-                    source: source,
-                    name: key+"Layer"
-                });
-                
                 countriesLayerGroup.getLayers().push(layer);
                 console.log("Added: ", key);
             }
@@ -586,4 +498,27 @@ function getLayerByName(map, name)
         }
     });
     return output;
+}
+
+function layerFromWKTgeom(wkt, properties) //requires 'name' in properties
+{
+    var format = new ol.format.WKT();
+    
+    const polygonFeature = format.readFeature(wkt, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: 'EPSG:3857',
+    });
+
+    polygonFeature.setProperties(properties);
+
+    let source = new ol.source.Vector({
+        features: [polygonFeature]
+    });
+    
+    var layer = new ol.layer.Vector({
+        source: source,
+        name: properties["name"]+"Layer"
+    });
+
+    return layer;
 }
