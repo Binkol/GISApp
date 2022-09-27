@@ -90,15 +90,12 @@ function init()
 
     let selected = null;
     let hasFeature = false;
-
-    const element = overlay.getElement();
     
     map.on('pointermove', function (e) {
         if (selected !== null) {
             selected.setStyle(undefined);
             selected = null;
         }
-        var popover = bootstrap.Popover.getInstance(element);
 
         map.forEachFeatureAtPixel(e.pixel, function (feature) {
             if(hoverOn)
@@ -113,27 +110,24 @@ function init()
                 overlay.setPosition(coordinate);
                 hasFeature = true;
 
-                if (popover) {
-                    popover.dispose();
-                }
-                popover = new bootstrap.Popover(element, {
-                    animation: false,
-                    container: element,
-                    content: '<p>' + selected.get("name") + '</p>',
-                    html: true,
-                    placement: 'top',
-                    title: 'Airport name: ',
-                });
-                popover.show();
                 return true;
             }
         });
-
+        
+        if (selected) 
+        {
+            $("#status").text(selected.get('name'));
+            $("#status").show();
+        } 
+        else 
+        {
+            $("#status").text('');
+            $("#status").hide();
+        }
+            
         //overlay
         if (!hasFeature) {
-            console.log("asd");
             overlay.setPosition(undefined);
-            popover.hide();
         }
     });
 
