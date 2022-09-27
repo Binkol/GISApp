@@ -36,7 +36,8 @@ function init()
             osm,
             bikeLayer,
             bingAerial
-        ]
+        ],
+        name: "baseLayer"
     });
 
     const map = new ol.Map({
@@ -104,10 +105,20 @@ function init()
                 selected = feature;
                 selectStyle.getFill().setColor(feature.get('COLOR') || '#eeeeee');
                 feature.setStyle(selectStyle);
-                
-                $("#popup-content").html('Airport Name: ' + selected.get("name") + "<br>Click to open Wiki");
+                let type = selected.get("type");
+                if(type == "country")
+                {
+                    $("#popup-content").html('Country name: ' + selected.get("name"));
+                }
+                else if(type == "airport")
+                {
+                    $("#popup-content").html('Airport name: ' + selected.get("name") + "<br>Click to open Wiki");
+                }
+                else if(type == "county")
+                {
+                    $("#popup-content").html('County name: ' + selected.get("name"));
+                }
                 overlay.setPosition(e.coordinate);
-
                 return true;
             }
         });
@@ -166,12 +177,18 @@ function drawCountryAirports(event)
 {
     var country_name = $("#countryInput").val();
     var map = event.data.mapObj;
+
+    const groupName = "airportsGroup"+country_name
+    const countryAirportsLayerGroup = new ol.layer.Group({
+        layers: [],
+        name: groupName,
+    });
+
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/countryAirports/",
         {name : country_name},
         function(response, status){
             for (const [name, data] of Object.entries(response)) {
-                console.log(name, data.geom);
                 let format = new ol.format.WKT()
                 
                 const polygonFeature = format.readFeature(data.geom, {
@@ -179,7 +196,10 @@ function drawCountryAirports(event)
                      featureProjection: 'EPSG:3857',
                  });
 
-                polygonFeature.setProperties({'name': name, "wiki": data.wiki});
+                 polygonFeature.setProperties({'name': data.name, 
+                                               'wiki': data.wikipedia,
+                                               'type': 'airport'  
+                                            });
 
                 let source = new ol.source.Vector({
                     features: [polygonFeature]
@@ -190,15 +210,21 @@ function drawCountryAirports(event)
                     name: name + "AirportLayer"
                 });
                 
-                map.addLayer(layer);
+                countryAirportsLayerGroup.getLayers().push(layer);
             }
+            map.addLayer(countryAirportsLayerGroup);
         }
     );
 }
 
-
 function drawAirports(event)
 {
+    const groupName = "airportsGroup"
+    const airportsLayerGroup = new ol.layer.Group({
+        layers: [],
+        name: groupName,
+    });
+
     var map = event.data.mapObj;
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/airports/",
@@ -212,7 +238,10 @@ function drawAirports(event)
                     featureProjection: 'EPSG:3857',
                 });
 
-                polygonFeature.setProperties({'name': data.name, "wiki": data.wikipedia});
+                polygonFeature.setProperties({'name': data.name, 
+                                              'wiki': data.wikipedia,
+                                              'type': 'airport'  
+                                            });
 
                 let source = new ol.source.Vector({
                     features: [polygonFeature]
@@ -220,18 +249,24 @@ function drawAirports(event)
                 
                 var layer = new ol.layer.Vector({
                     source: source,
-                    name: id + "Layer"
+                    name: id + "Layer",
                 });
                 
-                map.addLayer(layer);
+                airportsLayerGroup.getLayers().push(layer);
             }
+            map.addLayer(airportsLayerGroup);
         }
     );
 }
 
-
 function drawCounties(event)
 {
+    const groupName = "countyGroup"
+    const countyLayerGroup = new ol.layer.Group({
+        layers: [],
+        name: groupName,
+    });
+
     var map = event.data.mapObj;
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/counties/",
@@ -247,7 +282,7 @@ function drawCounties(event)
                         featureProjection: 'EPSG:3857',
                     });
 
-                    polygonFeature.setProperties({'name': key});
+                    polygonFeature.setProperties({'name': key, 'type': 'county'});
 
                     let source = new ol.source.Vector({
                         features: [polygonFeature]
@@ -258,13 +293,13 @@ function drawCounties(event)
                         name: key + "Layer"
                     });
                     
-                    map.addLayer(layer);
+                    countyLayerGroup.getLayers().push(layer);
                 }
             }
+            map.addLayer(countyLayerGroup);
         }
     );
 }
-
 
 function userInputLayers(layer)
 {
@@ -339,17 +374,31 @@ function drawAndCenterOnCountry(event)
 
 function drawGeometry(map, country)
 {
+    const groupName = "countires"
+    var countriesLayerGroup = getLayerByName(map, groupName);
+    if(countriesLayerGroup == null)
+    {
+        countriesLayerGroup = new ol.layer.Group({
+            layers: [],
+            name: groupName,
+        });
+    }
+    
+
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/countryData/",
         {name : country},
         function(response, status){
             wkt_geom = response['geom'];
+            let name = response['name'];
             var format = new ol.format.WKT()
             
             const polygonFeature = format.readFeature(wkt_geom, {
                 dataProjection: 'EPSG:4326',
                 featureProjection: 'EPSG:3857',
               });
+
+            polygonFeature.setProperties({'name': name, 'type': 'country'});
 
             let source = new ol.source.Vector({
                 features: [polygonFeature]
@@ -359,10 +408,11 @@ function drawGeometry(map, country)
                 source: source,
                 name: country+"Layer"
               });
-            
-            map.addLayer(layer);
+              
+            countriesLayerGroup.getLayers().push(layer);
         }
     );
+    map.addLayer(countriesLayerGroup);
 }
 
 function centerMap(map, country)
@@ -388,13 +438,15 @@ function centerMap(map, country)
 function removeLayers(event)
 {
     let map = event.data.mapObj;
-    let layers = map.getAllLayers();
+    let layers = map.getLayers();
+
     layers.forEach(function(layer){
-        if(layer.get("name") != "osm")
+        if(layer.get("name") != "baseLayer")
         {
             map.removeLayer(layer);
         }
     });
+
 }
 
 function handleOptionsSelect()
@@ -432,18 +484,31 @@ function drawCountriesInDistance(event)
     var country_name = $("#countryInput").val();
     var dist = $("#distanceInput").val();
     
+    const groupName = "countires"
+    var countriesLayerGroup = getLayerByName(map, groupName);
+    if(countriesLayerGroup == null)
+    {
+        countriesLayerGroup = new ol.layer.Group({
+            layers: [],
+            name: groupName,
+        });
+    }
+
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/surrCountriesInRadius/",
         {name : country_name, distance: dist},
         function(response, status){
             for (const [key, value] of Object.entries(response)) {
                 wkt_geom = value;
+                let name = key;
                 var format = new ol.format.WKT()
                 
                 const polygonFeature = format.readFeature(wkt_geom, {
                     dataProjection: 'EPSG:4326',
                     featureProjection: 'EPSG:3857',
                 });
+
+                polygonFeature.setProperties({'name': name, 'type': 'country'});
 
                 let source = new ol.source.Vector({
                     features: [polygonFeature]
@@ -454,9 +519,10 @@ function drawCountriesInDistance(event)
                     name: key+"Layer"
                 });
                 
-                map.addLayer(layer);
+                countriesLayerGroup.getLayers().push(layer);
                 console.log("Added: ", key);
             }
+            map.addLayer(countriesLayerGroup)
         }
     );
 }
@@ -466,18 +532,31 @@ function drawNeighbours(event)
     var map = event.data.mapObj;
     var country_name = $("#countryInput").val();
     
+    const groupName = "countires"
+    var countriesLayerGroup = getLayerByName(map, groupName);
+    if(countriesLayerGroup == null)
+    {
+        countriesLayerGroup = new ol.layer.Group({
+            layers: [],
+            name: groupName,
+        });
+    }
+
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/getNeighbours/",
         {name : country_name},
         function(response, status){
             for (const [key, value] of Object.entries(response)) {
                 wkt_geom = value;
+                let name = key;
                 var format = new ol.format.WKT()
                 
                 const polygonFeature = format.readFeature(wkt_geom, {
                     dataProjection: 'EPSG:4326',
                     featureProjection: 'EPSG:3857',
                 });
+
+                polygonFeature.setProperties({'name': name, 'type': 'country'});
 
                 let source = new ol.source.Vector({
                     features: [polygonFeature]
@@ -488,9 +567,23 @@ function drawNeighbours(event)
                     name: key+"Layer"
                 });
                 
-                map.addLayer(layer);
+                countriesLayerGroup.getLayers().push(layer);
                 console.log("Added: ", key);
             }
+            map.addLayer(countriesLayerGroup)
         }
     );
+}
+
+function getLayerByName(map, name)
+{
+    let output = null;
+
+    map.getLayers().forEach(function (layer) {
+        if (layer.get('name') != undefined && layer.get('name') === name) 
+        {
+            output = layer;
+        }
+    });
+    return output;
 }
