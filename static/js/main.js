@@ -49,7 +49,7 @@ function init()
 
 
     var overlay = new ol.Overlay({
-        element: $("#overlay")[0],
+        element: $("#popup")[0],
         autoPan: true,
         autoPanAnimation: {
              duration: 250
@@ -88,11 +88,11 @@ function init()
         }),
       });
 
+
     let selected = null;
-    let hasFeature = false;
-    
     map.on('pointermove', function (e) {
-        if (selected !== null) {
+        if (selected !== null) 
+        {
             selected.setStyle(undefined);
             selected = null;
         }
@@ -105,10 +105,8 @@ function init()
                 selectStyle.getFill().setColor(feature.get('COLOR') || '#eeeeee');
                 feature.setStyle(selectStyle);
                 
-                //overlay
-                var coordinate = e.coordinate;
-                overlay.setPosition(coordinate);
-                hasFeature = true;
+                $("#popup-content").html('Airport Name: ' + selected.get("name") + "<br>Click to open Wiki");
+                overlay.setPosition(e.coordinate);
 
                 return true;
             }
@@ -123,12 +121,9 @@ function init()
         {
             $("#status").text('');
             $("#status").hide();
-        }
-            
-        //overlay
-        if (!hasFeature) {
             overlay.setPosition(undefined);
         }
+          
     });
 
     $("#drawSingleGeomButton").click({mapObj: map}, drawAndCenterOnCountry);
@@ -164,6 +159,7 @@ function init()
     $("#drawAirports").click({mapObj: map}, drawAirports);
     $("#drawCountryAirports").click({mapObj: map}, drawCountryAirports);
 }
+
 
 
 function drawCountryAirports(event)
