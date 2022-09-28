@@ -45,9 +45,16 @@ function init()
             center: [2116228.358766089, 6856093.900862803],
             zoom: 3,
         }),
-        target: 'js-map'
+        target: 'js-map',
+        controls: []
     });
 
+    var controlsDiv = $("#controls")[0];
+    var control = new ol.control.Control({
+        element: controlsDiv
+    })
+
+    map.addControl(control);
 
     var overlay = new ol.Overlay({
         element: $("#popup")[0],
@@ -56,10 +63,9 @@ function init()
              duration: 250
         }
     });
-    
+
     map.addOverlay(overlay);
     map.addLayer(layerGroup);
-
     
     map.on('click', function(event){
         console.log(event.coordinate);
