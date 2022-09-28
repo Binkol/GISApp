@@ -2,6 +2,7 @@ window.onload = init;
 
 function init()
 {
+    initialControlsHide();
     var hoverOn = false;
 
     const osm = new ol.layer.Tile({
@@ -177,7 +178,17 @@ function init()
     $("#drawCountryAirports").click({mapObj: map}, drawCountryAirports);
 }
 
+function initialControlsHide()
+{
+    $("#distanceLabel").hide();
+    $("#distanceInput").hide();
+    $("#drawCountriesInDist").hide();
+    $("#drawNeighboursButton").hide();
+    $("#drawCounties").hide();
+    $("#switchToWorldView").hide();
+    $("#hoverButtonOff").hide();
 
+}
 
 function drawCountryAirports(event)
 {
@@ -196,7 +207,7 @@ function drawCountryAirports(event)
         function(response, status){
             for (const [name, data] of Object.entries(response)) {
                 let properties = {'name': name, 
-                                  'wiki': data.wikipedia,
+                                  'wiki': data.wiki,
                                   'type': 'airport'  
                                 };
                 let layer = layerFromWKTgeom(data.geom, properties);
@@ -405,6 +416,8 @@ function handleOptionsSelect()
         $("#drawCountriesInDist").hide();
         $("#distanceLabel").hide();
         $("#drawNeighboursButton").hide();
+        $("#drawCountryAirports").show();
+
     }
     else if (obj.val() == "distance")
     {
@@ -413,6 +426,7 @@ function handleOptionsSelect()
         $("#drawCountriesInDist").show();
         $("#distanceLabel").show();
         $("#drawNeighboursButton").hide();
+        $("#drawCountryAirports").hide();
     }
     else if (obj.val() == "neighbours")
     {
@@ -421,6 +435,8 @@ function handleOptionsSelect()
         $("#drawCountriesInDist").hide();
         $("#distanceLabel").hide();
         $("#drawNeighboursButton").show();
+        $("#drawCountryAirports").hide();
+
     }
 }
 

@@ -1,4 +1,5 @@
-.ol-popup {
+.ol-popup 
+{
     position: absolute;
     background-color: white;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
@@ -9,7 +10,9 @@
     left: -50px;
     min-width: 280px;
   }
-  .ol-popup:after, .ol-popup:before {
+
+.ol-popup:after, .ol-popup:before 
+{
     top: 100%;
     border: solid transparent;
     content: " ";
@@ -17,25 +20,84 @@
     width: 0;
     position: absolute;
     pointer-events: none;
-  }
-  .ol-popup:after {
+}
+
+.ol-popup:after 
+{
     border-top-color: white;
     border-width: 10px;
     left: 48px;
     margin-left: -10px;
-  }
-  .ol-popup:before {
+}
+
+.ol-popup:before 
+{
     border-top-color: #cccccc;
     border-width: 11px;
     left: 48px;
     margin-left: -11px;
-  }
-  .ol-popup-closer {
+}
+
+.ol-popup-closer 
+{
     text-decoration: none;
     position: absolute;
     top: 2px;
     right: 8px;
-  }
-  .ol-popup-closer:after {
+}
+
+.ol-popup-closer:after 
+{
     content: "✖";
-  }
+}
+
+#controls
+{
+    width: 15%;
+    padding: 10px;
+    background-color: rgba(0, 133, 29, 0.541);
+    border-radius: 2%;
+}
+
+
+
+#controls button 
+{
+    background-color: #04AA6D; /* Green background */
+    border: 2px solid green; /* Green border */
+    color: white; /* White text */
+    padding: 3px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    width: 100%; /* Set a width if needed */
+    display: block; /* Make the buttons appear below each other */
+    margin: 2px;
+}
+
+/* Add a background color on hover */
+#controls button:hover 
+{
+    background-color: #3e8e41;
+}
+
+#mapStyleChoice row
+{
+    display: block;
+}
+
+#controls select 
+{
+    
+    padding: 3px; /* Some padding */
+    width: 100%; /* Set a width if needed */
+    display: block; /* Make the buttons appear below each other */
+    margin: 2px;
+}
+
+#countryInput
+{
+    
+    padding: 3px; /* Some padding */
+    width: 100%; /* Set a width if needed */
+    display: block; /* Make the buttons appear below each other */
+    margin: 2px;
+}

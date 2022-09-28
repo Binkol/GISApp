@@ -16,18 +16,18 @@
     
 </head>
 <body>
-    <div id="controls">
+    <div id="controls" class="newline">
         <label id="countryLabel">Country: </label>
         <input type="text" id="countryInput">
         <button type="button" id="drawSingleGeomButton">Draw Geometry</button>
         <button type="button" id="drawCountryAirports">Draw country airports</button>
 
 
-        <label id="distanceLabel" hidden>Distance: </label>
-        <input type="text" id="distanceInput" hidden>
-        <button type="button" id="drawCountriesInDist" hidden>Draw Countries in distance [km]</button>
+        <label id="distanceLabel">Distance: </label>
+        <input type="text" id="distanceInput">
+        <button type="button" id="drawCountriesInDist">Draw Countries in distance [km]</button>
 
-        <button type="button" id="drawNeighboursButton" hidden>Draw Neighbours</button>
+        <button type="button" id="drawNeighboursButton">Draw Neighbours</button>
 
         <select name="options" id="select1">
             <option value="single">Single Country</option>
@@ -37,13 +37,13 @@
 
         <button type="button" id="drawAirports">Draw airports</button>
         
-        <button type="button" id="drawCounties" hidden>Draw Counties</button>
+        <button type="button" id="drawCounties">Draw Counties</button>
 
         <button type="button" id="switchToPolandView">Switch to Poland View</button>
-        <button type="button" id="switchToWorldView" hidden>Switch to World View</button>
+        <button type="button" id="switchToWorldView">Switch to World View</button>
         
         <button type="button" id="hoverButtonOn">Turn hover on</button>
-        <button type="button" id="hoverButtonOff" hidden>Trun hover off</button>
+        <button type="button" id="hoverButtonOff">Turn hover off</button>
 
         <button type="button" id="clearMapButton">Clear Map</button>
 
@@ -54,15 +54,19 @@
         </div>
 
         <div>
-            <form name="mapStyleChoice">
-                <input type="radio" id="choice1" name="baseMap" value="osm" />
-                <label for="contactChoice1">OSM</label>
-            
-                <input type="radio" id="choice2" name="baseMap" value="bikeLayer" />
-                <label for="contactChoice2">Cycle roads</label>
-            
-                <input type="radio" id="choice3" name="baseMap" value="bingAerial" />
-                <label for="contactChoice3">Aerial</label>
+            <form id="mapStyleChoice" name="mapStyleChoice">
+                <div class="row">
+                    <input type="radio" id="choice1" name="baseMap" value="osm" />
+                    <label for="contactChoice1">OSM</label>
+                </div>
+                <div class="row">
+                    <input type="radio" id="choice2" name="baseMap" value="bikeLayer" />
+                    <label for="contactChoice2">Cycle roads</label>
+                </div>
+                <div class="row">
+                    <input type="radio" id="choice3" name="baseMap" value="bingAerial" />
+                    <label for="contactChoice3">Aerial</label>
+                </div>
             </form>
         </div>
     </div>
