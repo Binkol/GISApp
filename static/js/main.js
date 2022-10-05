@@ -205,7 +205,8 @@ function drawCountryAirports(event)
         "http://127.0.0.1:8000/mapViewer/countryAirports/",
         {name : country_name},
         function(response, status){
-            for (const [name, data] of Object.entries(response)) {
+            for (const [name, data] of Object.entries(response)) 
+            {
                 let properties = {'name': name, 
                                   'wiki': data.wiki,
                                   'type': 'airport'  
@@ -290,6 +291,9 @@ function userInputLayers(layer)
         $("#distanceInput").hide();
         $("#drawCountriesInDist").hide();
         $("#drawNeighboursButton").hide();
+        
+        $("#drawCountryAirports").hide();
+        $("#drawAirports").hide();
     }
     else if(layer == "world")
     {
@@ -301,6 +305,9 @@ function userInputLayers(layer)
         $("#drawSingleGeomButton").show();
         $("#countryInput").show();
         $("#countryLabel").show();
+
+        $("#drawCountryAirports").show();
+        $("#drawAirports").show();
     }
 }
 
@@ -396,13 +403,16 @@ function removeLayers(event)
 {
     let map = event.data.mapObj;
     let layers = map.getLayers();
-
+    console.log("before del", layers);
     layers.forEach(function(layer){
         if(layer.get("name") != "baseLayer")
         {
             map.removeLayer(layer);
         }
     });
+
+    layers = map.getLayers();
+    console.log("after del", layers);
 
 }
 
