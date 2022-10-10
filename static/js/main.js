@@ -71,7 +71,6 @@ function init()
     map.on('click', function(event){
         console.log(event.coordinate);
         let layers = map.getLayers();
-        console.log("curr layers", layers);
 
         map.forEachFeatureAtPixel(event.pixel, function (feature) {
             selected = feature;
@@ -369,7 +368,7 @@ function drawGeometry(map, country)
     $.getJSON(
         "http://127.0.0.1:8000/mapViewer/countryData/",
         {name : country},
-        function(response, status){
+        function(response){
             wkt_geom = response['geom'];
             let name = response['name'];
             
@@ -378,7 +377,13 @@ function drawGeometry(map, country)
               
             countriesLayerGroup.getLayers().push(layer);
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            alert("404 - Inserted country not found");
+        } else {
+            alert("Other non-handled error type");
+        }
+    });
     map.addLayer(countriesLayerGroup);
 }
 

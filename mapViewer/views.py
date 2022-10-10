@@ -32,9 +32,12 @@ def index(request):
 def getCountryData(request):
     country_name = request.GET.get('name','')
     query = session.query(Countries).filter_by(name=country_name).first()
-    shape_geom = to_shape(query.geom)
-
-    return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt})
+    
+    if query:
+        shape_geom = to_shape(query.geom)
+        return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt})
+    else:
+        return HttpResponse(status=404)
 
 
 def getCounties(request):
@@ -57,7 +60,6 @@ def getCountryCentre(request):
 def surrCountriesInRadius(request):    
     country_name = request.GET.get('name','')
     distance = request.GET.get('distance','')
-    
 
     c1 = aliased(Countries, name='c1')
     c2 = aliased(Countries, name='c2')
