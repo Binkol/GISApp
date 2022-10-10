@@ -70,6 +70,9 @@ function init()
     
     map.on('click', function(event){
         console.log(event.coordinate);
+        let layers = map.getLayers();
+        console.log("curr layers", layers);
+
         map.forEachFeatureAtPixel(event.pixel, function (feature) {
             selected = feature;
             wiki = selected.get("wiki")
@@ -402,18 +405,15 @@ function centerMap(map, country)
 function removeLayers(event)
 {
     let map = event.data.mapObj;
-    let layers = map.getLayers();
-    console.log("before del", layers);
-    layers.forEach(function(layer){
-        if(layer.get("name") != "baseLayer")
+    let layers = map.getLayers().getArray();
+    
+    for (let i=layers.length-1; i>=0; i--)
+    {
+        if(layers[i].get("name") != "baseLayer")
         {
-            map.removeLayer(layer);
-        }
-    });
-
-    layers = map.getLayers();
-    console.log("after del", layers);
-
+            map.removeLayer(layers[i]);
+        } 
+    }
 }
 
 function handleOptionsSelect()
