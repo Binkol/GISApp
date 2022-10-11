@@ -100,13 +100,37 @@ function init()
 
 
     let selected = null;
+    let lastSelectedAirport = null;
+    let counter = 0;
     map.on('pointermove', function (e) {
+        
         if (selected !== null) 
         {
             selected.setStyle(undefined);
-            selected = null;
+            let type = selected.get("type");
+            if(type != "airport")
+            {
+                selected = null;
+            }
+            else
+            {
+                lastSelectedAirport = selected;
+            }
         }
-
+        
+        counter += 1;
+        if (counter > 5)
+        {
+            if (lastSelectedAirport !== null) 
+            {
+                lastSelectedAirport.setStyle(undefined);
+                lastSelectedAirport = null;
+                overlay.setPosition(undefined);
+            }
+            counter = 0;
+        }
+        
+    
         map.forEachFeatureAtPixel(e.pixel, function (feature) {
             if(hoverOn)
             {
@@ -128,9 +152,11 @@ function init()
                     $("#popup-content").html('County name: ' + selected.get("name"));
                 }
                 overlay.setPosition(e.coordinate);
+                
                 return true;
             }
         });
+        
         
         if (selected) 
         {
