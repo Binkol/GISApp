@@ -219,7 +219,13 @@ function drawCountryAirports(event)
             }
             map.addLayer(countryAirportsLayerGroup);
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            alert("404 - Inserted country not found");
+        } else {
+            alert("Other non-handled error type");
+        }
+    });
 }
 
 function drawAirports(event)
@@ -245,7 +251,13 @@ function drawAirports(event)
             }
             map.addLayer(airportsLayerGroup);
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            alert("404 - not found");
+        } else {
+            alert("Other non-handled error type");
+        }
+    });
 }
 
 function drawCounties(event)
@@ -273,7 +285,13 @@ function drawCounties(event)
             }
             map.addLayer(countyLayerGroup);
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            alert("404 - not found");
+        } else {
+            alert("Other non-handled error type");
+        }
+    });
 }
 
 function userInputLayers(layer)
@@ -377,9 +395,10 @@ function drawGeometry(map, country)
               
             countriesLayerGroup.getLayers().push(layer);
         }
-    ).fail(function(jqXHR){
+    ).fail(function(jqXHR, textStatus, errorThrown){
+        console.log(jqXHR.status, errorThrown)
         if (jqXHR.status == 404) {
-            alert("404 - Inserted country not found");
+            alert("404 - Inserted country not found " + jqXHR.responseText);
         } else {
             alert("Other non-handled error type");
         }
@@ -404,7 +423,13 @@ function centerMap(map, country)
 
             map.getView().setCenter(point_feature.getGeometry().getCoordinates());
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            //alert("404 - not found - (while centering)");
+        } else {
+            //alert("Other non-handled error type");
+        }
+    });
 }
 
 function removeLayers(event)
@@ -487,7 +512,13 @@ function drawCountriesInDistance(event)
             }
             map.addLayer(countriesLayerGroup)
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            alert("404 - Inserted country not found");
+        } else {
+            alert("Other non-handled error type");
+        }
+    });
 }
 
 function drawNeighbours(event)
@@ -521,7 +552,13 @@ function drawNeighbours(event)
             }
             map.addLayer(countriesLayerGroup)
         }
-    );
+    ).fail(function(jqXHR){
+        if (jqXHR.status == 404) {
+            alert("404 - Inserted country not found");
+        } else {
+            alert("Other non-handled error type");
+        }
+    });
 }
 
 function getLayerByName(map, name)

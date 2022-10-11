@@ -7,13 +7,21 @@ from mapViewer.alch_models import Countries, County, Airport
 from geoalchemy2.shape import to_shape
 from geoalchemy2 import func
 from geoalchemy2.types import Geography
+from sqlalchemy import exc
 from sqlalchemy.sql import cast
+from rest_framework.response import Response
+from rest_framework import status
 
 import json
 
 engine = create_engine('postgresql://postgres:postgres@172.23.0.2:5432/postgres', echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
+
+errors ={
+    "countryNotFound": "Country Not Found",
+    "internal": "Internal error occured"
+}
 
 class MultipleGeomDict(dict):
     def __setitem__(self, key, value):
@@ -31,97 +39,140 @@ def index(request):
 
 def getCountryData(request):
     country_name = request.GET.get('name','')
-    query = session.query(Countries).filter_by(name=country_name).first()
-    
-    if query:
+    try:
+        query = session.query(Countries).filter_by(name=country_name).one()
         shape_geom = to_shape(query.geom)
         return JsonResponse({"name": query.name, "region": query.region, "geom": shape_geom.wkt})
-    else:
-        return HttpResponse(status=404)
-
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def getCounties(request):
-    query = session.query(County).all()
-    data = MultipleGeomDict()
-    for row in query:
-        data[row.name] = to_shape(row.geom).wkt
-    return JsonResponse(data)
-
+    try:
+        query = session.query(County).all()
+        if not query:
+            raise exc.NoResultFound
+        
+        data = MultipleGeomDict()
+        for row in query:
+            data[row.name] = to_shape(row.geom).wkt
+        return JsonResponse(data)
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def getCountryCentre(request):
     country_name = request.GET.get('name','')
-    query = session.query(Countries).filter_by(name=country_name).first()
-    center_geom = session.scalar(query.geom.ST_Centroid())
-    point = to_shape(center_geom)
+    try:
+        query = session.query(Countries).filter_by(name=country_name).one()
+        center_geom = session.scalar(query.geom.ST_Centroid())
+        point = to_shape(center_geom)
 
-    return JsonResponse({"center_geom": point.wkt})
+        return JsonResponse({"center_geom": point.wkt})
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def surrCountriesInRadius(request):    
     country_name = request.GET.get('name','')
     distance = request.GET.get('distance','')
+    try:
+        c1 = aliased(Countries, name='c1')
+        c2 = aliased(Countries, name='c2')
 
-    c1 = aliased(Countries, name='c1')
-    c2 = aliased(Countries, name='c2')
+        #countries within radius from certain country using casting to geography
+        query = session.query(c1, c2).filter(and_(
+            c1.name==country_name,
+            ((func.ST_Distance(
+                cast(c1.geom, Geography(srid=4326)), 
+                cast(c2.geom, Geography(srid=4326))
+                )/1000) < int(distance))
+            )).all()
+        print("AAAAAAAAAAAAAA", query)
+        if not query:
+            raise exc.NoResultFound
 
-    #countries within radius from certain country using casting to geography
-    query = session.query(c1, c2).filter(and_(
-        c1.name==country_name,
-        ((func.ST_Distance(
-            cast(c1.geom, Geography(srid=4326)), 
-            cast(c2.geom, Geography(srid=4326))
-            )/1000) < int(distance))
-        )).all()
+        data = {}
+        for row in query:
+            data[row.c2.name] = to_shape(row.c2.geom).wkt
 
-    data = {}
-    for row in query:
-        data[row.c2.name] = to_shape(row.c2.geom).wkt
-
-    return JsonResponse(data)
+        return JsonResponse(data)
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def getNeighbours(request):    
     country_name = request.GET.get('name','')
     distance = 1
     
-    c1 = aliased(Countries, name='c1')
-    c2 = aliased(Countries, name='c2')
+    try:
+        c1 = aliased(Countries, name='c1')
+        c2 = aliased(Countries, name='c2')
 
-    query = session.query(c1, c2).filter(and_(
-        c1.name==country_name,
-        ((func.ST_Distance(
-            cast(c1.geom, Geography(srid=4326)), 
-            cast(c2.geom, Geography(srid=4326))
-            )/1000) < int(distance))
-        )).all()
+        query = session.query(c1, c2).filter(and_(
+            c1.name==country_name,
+            ((func.ST_Distance(
+                cast(c1.geom, Geography(srid=4326)), 
+                cast(c2.geom, Geography(srid=4326))
+                )/1000) < int(distance))
+            )).all()
 
-    data = {}
-    for row in query:
-        data[row.c2.name] = to_shape(row.c2.geom).wkt
+        if not query:
+            raise exc.NoResultFound
 
-    return JsonResponse(data)
-    
+        data = {}
+        for row in query:
+            data[row.c2.name] = to_shape(row.c2.geom).wkt
+
+        return JsonResponse(data)
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def getAirports(request):
-    query = session.query(Airport).all()
-    data = {}
-    
-    for row in query:
-        data[row.id] = row.as_dict()
-        data[row.id]["geom"] = to_shape(row.geom).wkt
-        data[row.id].pop("id")
-    return JsonResponse(data)
+    try:
+        query = session.query(Airport).all()
+        data = {}
+        
+        if not query:
+            raise exc.NoResultFound
+
+        for row in query:
+            data[row.id] = row.as_dict()
+            data[row.id]["geom"] = to_shape(row.geom).wkt
+            data[row.id].pop("id")
+        return JsonResponse(data)
+
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def getCountryAirports(request):
     country_name = request.GET.get('name','')
 
-    c = aliased(Countries, name='c')
-    a = aliased(Airport, name='a')
+    try:
+        c = aliased(Countries, name='c')
+        a = aliased(Airport, name='a')
 
-    output = session.query(c, a).filter(and_(func.ST_Contains(c.geom, a.geom), c.name==country_name)).all()
+        output = session.query(c, a).filter(and_(func.ST_Contains(c.geom, a.geom), c.name==country_name)).all()
 
-    data = {}
-    for row in output:
-        data[row.a.name] = {"geom": to_shape(row.a.geom).wkt, "wiki": row.a.wikipedia}
+        if not output:
+            raise exc.NoResultFound
 
-    return JsonResponse(data)
+        data = {}
+        for row in output:
+            data[row.a.name] = {"geom": to_shape(row.a.geom).wkt, "wiki": row.a.wikipedia}
+
+        return JsonResponse(data)
+    except exc.NoResultFound:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+    except:
+        return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
